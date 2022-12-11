@@ -95,8 +95,9 @@ app.post("/adduser", (req,res)=>{
             res.send('Incorrect Username and/or Password!');
         }			
     });
-    });
+    
 
+});
     //REFRESH TOKEN API
 app.post("/refreshToken", (req,res) => {
    
@@ -148,6 +149,7 @@ app.post("/deleteTweet", (req,res)=>{
                 res.send("Tweet has Deleted");
             });      
     });
+
  
 
 //Edit a tweet
@@ -163,13 +165,139 @@ app.post("/editTweet", (req,res)=>{
                 res.send("Tweet has Edited");
             });      
     });
+
+    //Retrieve all tweets (use paging) 
+app.post("/RetrieveTweet/:lastID", (req,res)=>{
+    const lastID = parseInt(req.params.lastID);
+    const ID = req.body.ID;
+    const Description = req.body.Description;
+            db.query("SELECT * FROM tweets LIMIT ? , 3 " ,[lastID],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log(result);
+                res.send(result);
+                
+            });      
+    });
+
+
+// Retrieve specific user tweets
+app.post("/RetrieveUser", (req,res)=>{
+    const UserId = req.body.UserId;
+            db.query("select * from tweets Where UserId = ?",[UserId],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log(result);
+                res.send(result);
+            });      
+    });
+
+
+//Retrieve user info
+app.post("/RetrieveUserInfo", (req,res)=>{
+    const ID = req.body.ID;
+            db.query("select ID,Username,FullName,Birthday,Address from users Where ID = ?",[ID],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log(result);
+                res.send(result);
+            });      
+    });
+
+
+//Edit my own info
+app.post("/editMyInfo", (req,res)=> {
+    const ID = req.body.ID;
+    const FullName = req.body.FullName;
+    const Birthday = req.body.Birthday;
+    const Address = req.body.Address;
+
+    const Username = req.body.Username;
+    const Password = req.body.Password;
+
+    //AUTHENTICATE LOGIN AND RETURN JWT TOKEN
+
+    db.query('SELECT * FROM users WHERE Username = ? and password = ?', [Username, Password], async (err, result) =>  {
+        if (err){
+            console.log("Error !!");
+        }
+        if (result.length > 0) {
+        
+            const accessToken = generateAccessToken ({user: req.body.Username})
+            const refreshToken = generateRefreshToken ({user: req.body.Username})
+            res.json ({accessToken: accessToken, refreshToken: refreshToken})
+
+            db.query("UPDATE users SET FullName = ?,Birthday = ?, Address =? WHERE ID = ?",[FullName,Birthday,Address,ID],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log("Your information has Edited");
+                res.send("information has Edited");
+            });      
+        
+          //  res.send('Welcome to Home page');
+          //  console.log("Welcome to Home page");
+        } else {
+            res.send('Incorrect Username and/or Password!');
+        }			
+    });
+});
+//Change password
+app.post("/changePass", (req,res)=>{
+    const ID = req.body.ID;
+    const Password = req.body.Password;
+    const Username = req.body.Username;
+
+    //AUTHENTICATE LOGIN AND RETURN JWT TOKEN
+
+    db.query('SELECT * FROM users WHERE Username = ? and password = ?', [Username, Password], async (err, result) =>  {
+        if (err){
+            console.log("Error !!");
+        }
+        if (result.length > 0) {
+        
+            const accessToken = generateAccessToken ({user: req.body.Username})
+            const refreshToken = generateRefreshToken ({user: req.body.Username})
+            res.json ({accessToken: accessToken, refreshToken: refreshToken})
+
+
+            db.query("UPDATE users SET Password= ? WHERE ID = ?",[Password,ID],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log("Password changed");
+                res.send("Password changed");
+            });
+        
+          //  res.send('Welcome to Home page');
+          //  console.log("Welcome to Home page");
+        } else {
+            res.send('Incorrect Username and/or Password!');
+        }			
+    });
+
+    
+
+                  
+    });
+    
+
+
     
     //retire refresh tokens on logout
     app.delete("/logout", (req,res)=>{
     refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
     //remove the old refreshToken from the refreshTokens list
     res.status(204).send("Logged out!")
-    })
+    });
 
 
 
