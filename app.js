@@ -24,23 +24,8 @@ db.connect((err)=>{
     console.log("Connection Done!");
 }); 
 
-// accessTokens
-function generateAccessToken(user) 
-{
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "15m"}) 
-}
+    const ID = req.body.ID;
 
-    // refreshTokens
-let refreshTokens = []
-function generateRefreshToken(user) 
-{
-    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {expiresIn: "20m"})
-    refreshTokens.push(refreshToken)
-    return refreshToken
-}
-
-//Login 
-app.post("/loginUser", (req,res)=>{
     const Username = req.body.Username;
     const Password = req.body.Password;
 
@@ -62,7 +47,7 @@ app.post("/loginUser", (req,res)=>{
             res.send('Incorrect Username and/or Password!');
         }			
     });
-    });
+    
 
     //REFRESH TOKEN API
 app.post("/refreshToken", (req,res) => {
@@ -252,6 +237,11 @@ app.post("/changePass", (req,res)=>{
 
                   
     });
+    
+
+
+
+
 
 app.listen('3000' , (err) => {
     if (err){
