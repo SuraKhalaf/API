@@ -116,7 +116,6 @@ app.post("/deleteTweet", (req,res)=>{
             });      
     });
  
-
 //Edit a tweet
 app.post("/editTweet", (req,res)=>{
     const ID = req.body.ID;
