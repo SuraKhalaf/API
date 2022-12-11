@@ -74,7 +74,6 @@ app.post("/refreshToken", (req,res) => {
     //generate new accessToken and refreshTokens
     res.json ({accessToken: accessToken, refreshToken: refreshToken})
     });
-
 // Sign up 
 app.post("/adduser", (req,res)=>{
     const ID = req.body.ID;
@@ -112,6 +111,15 @@ app.post("/adduser", (req,res)=>{
     
     });
     
+    //retire refresh tokens on logout
+    app.delete("/logout", (req,res)=>{
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+    //remove the old refreshToken from the refreshTokens list
+    res.status(204).send("Logged out!")
+    })
+
+
+
 app.listen('3000' , (err) => {
     if (err){
         throw err;
