@@ -789,6 +789,22 @@ app.post("/RetrieveTweetComments/:lastID", (req,res)=>{
             });      
     });
 
+    //Delete a tweet comment
+app.post("/deleteComment", (req,res)=>{
+    const ID = req.body.ID;
+                db.query("DELETE FROM comments WHERE TweetId = ?",[ID],(err,result)=> {
+                    if (err){
+                        console.log("Error !!");
+                        res.send("Error !!");
+                    }
+                    // if there is no error --> 
+                    console.log("Comment deleted");
+                    res.send("Comment deleted");
+                });      
+                               
+    });
+
+
 //Retrieve tweet likes count
 app.post("/RetrieveCountLikes", (req,res)=>{
     const TweetId = req.body.TweetId;
