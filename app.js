@@ -706,6 +706,74 @@ app.post("/comment", (req,res)=>{
                            });      
     });
 
+//Delete a tweet comment
+app.post("/deleteComment", (req,res)=>{
+    const ID = req.body.ID;
+                db.query("DELETE FROM comments WHERE TweetId = ?",[ID],(err,result)=> {
+                    if (err){
+                        console.log("Error !!");
+                        res.send("Error !!");
+                    }
+                    // if there is no error --> 
+                    console.log("Comment deleted");
+                    res.send("Comment deleted");
+                });      
+                               
+    });
+
+
+//Like a tweet 
+app.post("/likeTweet", (req,res)=>{
+    const ID = req.body.ID;
+    const TweetId = req.body.TweetId;
+    const UserId = req.body.UserId;
+    
+   
+            db.query("insert into likes values (?,?,?)",[ID,UserId,TweetId],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                    res.send("Error !!");
+                }
+                
+                // if there is no error --> 
+                console.log("Like a Tweet");
+                res.send("Like a Tweet");
+
+
+               
+                           });      
+    });
+
+
+//Retrieve tweet likes (use paging)
+app.post("/RetrieveTweetLikes/:lastID", (req,res)=>{
+    const lastID = parseInt(req.params.lastID);
+    const TweetId = req.body.TweetId;
+            db.query("select Likes.ID from tweets,Likes Where Likes.TweetId = ? and tweets.ID = Likes.TweetId LIMIT ? , 5",[TweetId,lastID],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log(result);
+                res.send(result);
+            });      
+    });
+
+
+//Unlike a tweet 
+app.post("/unlikeTweet", (req,res)=>{
+    const TweetId = req.body.TweetId;
+                db.query("DELETE FROM likes WHERE TweetId = ?",[TweetId],(err,result)=> {
+                    if (err){
+                        console.log("Error !!");
+                        res.send("Error !!");
+                    }
+                    // if there is no error --> 
+                    console.log("Like deleted");
+                    res.send("Like deleted");
+                });      
+                               
+    });
 
 //Retrieve tweet comments (use paging)
 app.post("/RetrieveTweetComments/:lastID", (req,res)=>{
@@ -733,6 +801,7 @@ app.post("/RetrieveCountLikes", (req,res)=>{
                 res.send(result);
             });      
     });
+
 
 app.listen('3000' , (err) => {
     if (err){
