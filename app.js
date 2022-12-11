@@ -24,8 +24,23 @@ db.connect((err)=>{
     console.log("Connection Done!");
 }); 
 
-    const ID = req.body.ID;
+// accessTokens
+function generateAccessToken(user) 
+{
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "15m"}) 
+}
 
+    // refreshTokens
+let refreshTokens = []
+function generateRefreshToken(user) 
+{
+    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {expiresIn: "20m"})
+    refreshTokens.push(refreshToken)
+    return refreshToken
+}
+
+//Login 
+app.post("/loginUser", (req,res)=>{
     const Username = req.body.Username;
     const Password = req.body.Password;
 
@@ -47,8 +62,42 @@ db.connect((err)=>{
             res.send('Incorrect Username and/or Password!');
         }			
     });
+    });
+
+    //REFRESH TOKEN API
+app.post("/refreshToken", (req,res) => {
+   
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+    //remove the old refreshToken from the refreshTokens list
+    const accessToken = generateAccessToken ({user: req.body.Username})
+    const refreshToken = generateRefreshToken ({user: req.body.Username})
+    //generate new accessToken and refreshTokens
+    res.json ({accessToken: accessToken, refreshToken: refreshToken})
+    });
+// Sign up 
+app.post("/adduser", (req,res)=>{
+    const ID = req.body.ID;
+
+    const Username = req.body.Username;
+    const Password = req.body.Password;
+
+    db.query('SELECT * FROM users WHERE Username = ? and password = ?', [Username, Password], async (err, result) =>  {
+        if (err){
+            console.log("Error !!");
+        }
+        if (result.length > 0) {
+        
+            const accessToken = generateAccessToken ({user: req.body.Username})
+            const refreshToken = generateRefreshToken ({user: req.body.Username})
+            res.json ({accessToken: accessToken, refreshToken: refreshToken})
+        
+        } else {
+            res.send('Incorrect Username and/or Password!');
+        }			
+    });
     
 
+});
     //REFRESH TOKEN API
 app.post("/refreshToken", (req,res) => {
    
@@ -100,6 +149,8 @@ app.post("/deleteTweet", (req,res)=>{
                 res.send("Tweet has Deleted");
             });      
     });
+
+ 
 
 //Edit a tweet
 app.post("/editTweet", (req,res)=>{
@@ -239,6 +290,14 @@ app.post("/changePass", (req,res)=>{
     });
     
 
+
+    
+    //retire refresh tokens on logout
+    app.delete("/logout", (req,res)=>{
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+    //remove the old refreshToken from the refreshTokens list
+    res.status(204).send("Logged out!")
+    });
 
 
 
