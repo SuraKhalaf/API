@@ -471,7 +471,18 @@ app.post("/RetrieveTweetComments/:lastID", (req,res)=>{
             });      
     });
 
-
+//Retrieve tweet likes count
+app.post("/RetrieveCountLikes", (req,res)=>{
+    const TweetId = req.body.TweetId;
+            db.query("select COUNT(Likes.ID) from tweets,Likes Where Likes.TweetId = ? and tweets.ID = Likes.TweetId",[TweetId],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log(result);
+                res.send(result);
+            });      
+    });
 
 app.listen('3000' , (err) => {
     if (err){
