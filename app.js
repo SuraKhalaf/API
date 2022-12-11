@@ -75,6 +75,14 @@ app.post("/refreshToken", (req,res) => {
     res.json ({accessToken: accessToken, refreshToken: refreshToken})
     });
 
+    //retire refresh tokens on logout
+    app.delete("/logout", (req,res)=>{
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+    //remove the old refreshToken from the refreshTokens list
+    res.status(204).send("Logged out!")
+    })
+
+
 
 app.listen('3000' , (err) => {
     if (err){
