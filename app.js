@@ -64,6 +64,17 @@ app.post("/loginUser", (req,res)=>{
     });
     });
 
+    //REFRESH TOKEN API
+app.post("/refreshToken", (req,res) => {
+   
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+    //remove the old refreshToken from the refreshTokens list
+    const accessToken = generateAccessToken ({user: req.body.Username})
+    const refreshToken = generateRefreshToken ({user: req.body.Username})
+    //generate new accessToken and refreshTokens
+    res.json ({accessToken: accessToken, refreshToken: refreshToken})
+    });
+
 
 app.listen('3000' , (err) => {
     if (err){
