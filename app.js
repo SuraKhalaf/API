@@ -24,46 +24,114 @@ db.connect((err)=>{
     console.log("Connection Done!");
 }); 
 
+// accessTokens
+function generateAccessToken(user) 
+{
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "15m"}) 
+}
 
-// Sign up 
-app.post("/adduser", (req,res)=>{
-    const ID = req.body.ID;
+    // refreshTokens
+let refreshTokens = []
+function generateRefreshToken(user) 
+{
+    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {expiresIn: "20m"})
+    refreshTokens.push(refreshToken)
+    return refreshToken
+}
+
+//Login 
+app.post("/loginUser", (req,res)=>{
     const Username = req.body.Username;
-    const FullName = req.body.FullName;
-    const Birthday = req.body.Birthday;
     const Password = req.body.Password;
-    const Address = req.body.Address;
-    
-    // check if the user exist 
-    db.query('SELECT Username FROM users WHERE Username = ?', [Username], (err, result) =>  {
+
+    //AUTHENTICATE LOGIN AND RETURN JWT TOKEN
+
+    db.query('SELECT * FROM users WHERE Username = ? and password = ?', [Username, Password], async (err, result) =>  {
         if (err){
             console.log("Error !!");
         }
-        // if there is no error --> 
-       else if( result.length > 0 ) {
-           
-                res.send('This username is already exist');
-                console.log("This username is already exist");
-        }
-        else {
+        if (result.length > 0) {
         
-            db.query("insert into users values (?,?,?,?,?,?)",[ID,Username,FullName,Birthday,Password,Address],(err,result)=> {
+            const accessToken = generateAccessToken ({user: req.body.Username})
+            const refreshToken = generateRefreshToken ({user: req.body.Username})
+            res.json ({accessToken: accessToken, refreshToken: refreshToken})
+        
+          //  res.send('Welcome to Home page');
+          //  console.log("Welcome to Home page");
+        } else {
+            res.send('Incorrect Username and/or Password!');
+        }			
+    });
+    });
+
+    //REFRESH TOKEN API
+app.post("/refreshToken", (req,res) => {
+   
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+    //remove the old refreshToken from the refreshTokens list
+    const accessToken = generateAccessToken ({user: req.body.Username})
+    const refreshToken = generateRefreshToken ({user: req.body.Username})
+    //generate new accessToken and refreshTokens
+    res.json ({accessToken: accessToken, refreshToken: refreshToken})
+    });
+
+    //retire refresh tokens on logout
+    app.delete("/logout", (req,res)=>{
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+    //remove the old refreshToken from the refreshTokens list
+    res.status(204).send("Logged out!")
+    })
+
+    // Add new tweet
+app.post("/addTweet", (req,res)=>{
+    const ID = req.body.ID;
+    const UserId = req.body.UserId;
+    const Description = req.body.Description;
+    const Hashtag = req.body.Hashtag;
+    const Date = req.body.Date;
+    
+   
+            db.query("insert into tweets values (?,?,?,?,?)",[ID,UserId,Description,Hashtag,Date],(err,result)=> {
                 if (err){
                     console.log("Error !!");
                 }
                 // if there is no error --> 
-                console.log("Result");
-                res.send("Add to users");
-            });
-        
-        }
+                console.log("Add to tweets");
+                res.send("Add to tweets");
+            });      
     });
     
+
+// Delete a tweet 
+app.post("/deleteTweet", (req,res)=>{
+    const ID = req.body.ID;
     
+            db.query("DELETE FROM tweets WHERE ID = ?",[ID],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log("Tweet has Deleted");
+                res.send("Tweet has Deleted");
+            });      
+    });
+ 
+
+//Edit a tweet
+app.post("/editTweet", (req,res)=>{
+    const ID = req.body.ID;
+    const Description = req.body.Description;
+            db.query("UPDATE tweets SET Description= ? WHERE ID = ?",[Description,ID],(err,result)=> {
+                if (err){
+                    console.log("Error !!");
+                }
+                // if there is no error --> 
+                console.log("Tweet has Edited");
+                res.send("Tweet has Edited");
+            });      
     });
 
-    
-    
+
 app.listen('3000' , (err) => {
     if (err){
         throw err;
